@@ -100,7 +100,7 @@ def create_database_and_user(user_index):
                     (
                         inventory_date,
                         random.randint(1, 5),  # item_id
-                        random.randint(0, 10),  # quantity (음수는 출고, 양수는 입고)
+                        random.randint(0, 10),  # quantity
                     )
                 )
 
