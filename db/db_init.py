@@ -1,10 +1,9 @@
 import pymysql
 import random
 from datetime import datetime, timedelta
-import boto3
 
 # RDS 연결 정보
-rds_host = "database endpoint"
+rds_host = "db endpoint"
 db_username = "username"
 db_password = "password"
 
@@ -17,16 +16,11 @@ def create_database_and_user(user_index):
     try:
         conn = pymysql.connect(host=rds_host, user=db_username, password=db_password)
         with conn.cursor() as cursor:
-            # 데이터베이스 생성
             cursor.execute(f"CREATE DATABASE IF NOT EXISTS {db_name};")
-
-            # 사용자 생성 및 권한 부여
             cursor.execute(
                 f"CREATE USER IF NOT EXISTS '{user_name}'@'%' IDENTIFIED BY '{user_password}';"
             )
             cursor.execute(f"GRANT ALL PRIVILEGES ON {db_name}.* TO '{user_name}'@'%';")
-
-            # 데이터베이스 선택
             cursor.execute(f"USE {db_name};")
 
             # items 테이블 생성
@@ -70,7 +64,6 @@ def create_database_and_user(user_index):
             """
             )
 
-            # 샘플 데이터 생성
             # Items 데이터
             items_data = [
                 ("A", "A Factory", "인천", 10),
@@ -85,42 +78,34 @@ def create_database_and_user(user_index):
                 items_data,
             )
 
-            # Order logs 데이터
-            stores = ["A's Store", "B's Store", "C's Store", "D's Store"]
-            users = [f"user{i}" for i in range(1, 6)]
+            # Inventory logs 데이터 - 다양한 시간대로 생성
+            inventory_logs_data = []
+            start_date = datetime(2024, 1, 1)  # 1월부터 시작
 
-            order_logs_data = []
-            start_date = datetime(2024, 11, 1)
+            for i in range(5):  # 더 많은 인벤토리 로그 생성
+                # 랜덤한 날짜와 시간 생성
+                random_days = random.randint(0, 300)  # 약 10개월 범위
+                random_hours = random.randint(0, 23)
+                random_minutes = random.randint(0, 59)
+                random_seconds = random.randint(0, 59)
 
-            for i in range(20):
-                order_date = start_date + timedelta(days=random.randint(0, 30))
-                order_logs_data.append(
-                    (
-                        order_date,
-                        random.choice(users),
-                        random.randint(1, 5),  # item_id
-                        random.randint(1, 5),  # quantity
-                        random.choice(stores),
-                    )
+                inventory_date = start_date + timedelta(
+                    days=random_days,
+                    hours=random_hours,
+                    minutes=random_minutes,
+                    seconds=random_seconds,
                 )
 
-            cursor.executemany(
-                "INSERT INTO order_logs (created_at, order_by, item_id, quantity, store) VALUES (%s, %s, %s, %s, %s)",
-                order_logs_data,
-            )
-
-            # Inventory logs 데이터
-            inventory_logs_data = []
-
-            for i in range(15):
-                inventory_date = start_date + timedelta(days=random.randint(0, 30))
                 inventory_logs_data.append(
                     (
                         inventory_date,
                         random.randint(1, 5),  # item_id
-                        random.randint(1, 10),  # quantity
+                        random.randint(0, 10),  # quantity (음수는 출고, 양수는 입고)
                     )
                 )
+
+            # 시간순으로 정렬
+            inventory_logs_data.sort(key=lambda x: x[0])
 
             cursor.executemany(
                 "INSERT INTO inventory_logs (created_at, item_id, quantity) VALUES (%s, %s, %s)",
