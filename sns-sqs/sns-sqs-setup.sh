@@ -5,15 +5,15 @@ TOPIC_NAME="msa-topic-00"
 QUEUE_NAME="msa-queue-00"
 REGION="us-east-1"
 
-echo "Creating SNS topic and SQS queue..."
+echo "SNS topic & SQS queue 생성중..."
 
 # SNS 토픽 생성
 TOPIC_ARN=$(aws sns create-topic --name $TOPIC_NAME --region $REGION --output text)
-echo "SNS Topic created: $TOPIC_ARN"
+echo "SNS Topic 생성 완료: $TOPIC_ARN"
 
 # SQS 큐 생성
 QUEUE_URL=$(aws sqs create-queue --queue-name $QUEUE_NAME --region $REGION --output text)
-echo "SQS Queue created: $QUEUE_URL"
+echo "SQS Queue 생성 완료: $QUEUE_URL"
 
 
 # 생성된 리소스 정보 파일 저장
